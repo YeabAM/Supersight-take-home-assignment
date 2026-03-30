@@ -33,37 +33,8 @@ class MetricsTransformer:
         print(f"Generated {row_count} hourly records")
         return result
 
-    def calculate_occupancy(self, hourly_relation):
-        """Calculate running occupancy using window function"""
-
-        # Register the relation so it can be queried
-        self.conn.register("hourly_data", hourly_relation)
-
-        query = """
-        SELECT
-            device_id,
-            hour,
-            people_in,
-            people_out,
-            net_flow,
-            SUM(net_flow) OVER (
-                PARTITION BY device_id
-                ORDER BY hour
-                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-            ) as occupancy
-        FROM hourly_data
-        ORDER BY device_id, hour
-        """
-
-        print("Calculating occupancy...")
-        result = self.conn.sql(query)
-
-        return result
-
     def transform(self, raw_data_relation):
         """Run full transformation pipeline"""
         hourly = self.aggregate_hourly(raw_data_relation)
-        with_occupancy = self.calculate_occupancy(hourly)
-
         print("Transformation complete")
-        return with_occupancy
+        return hourly

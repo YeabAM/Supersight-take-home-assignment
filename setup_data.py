@@ -16,13 +16,10 @@ def setup_data():
         print(f"Place your sensor_data.zip file and update DATA_SOURCE in .env")
         return
 
-    # Create data directory
-    Path(DATA_DIR).mkdir(exist_ok=True)
-
     # Extract zip
-    print(f"Extracting {DATA_SOURCE} to {DATA_DIR}...")
+    print(f"Extracting {DATA_SOURCE}...")
     with zipfile.ZipFile(DATA_SOURCE, 'r') as zip_ref:
-        zip_ref.extractall(DATA_DIR)
+        zip_ref.extractall('.')
 
     # Validate structure
     data_path = Path(DATA_DIR)
@@ -32,6 +29,9 @@ def setup_data():
     for device in device_folders:
         csv_files = list(device.glob('*.csv'))
         print(f"  - {device.name}: {len(csv_files)} CSV files")
+
+    print(f"\nData setup complete! Files ready in {DATA_DIR}/")
+
 
     print(f"\n Data setup complete! Files ready in {DATA_DIR}/")
 

@@ -1,6 +1,7 @@
-import duckdb
 import os
 from pathlib import Path
+
+import duckdb
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,9 +48,9 @@ class CSVIngestor:
         query = " UNION ALL ".join(union_queries) + " ORDER BY timestamp"
 
         print(f"Reading data from {len(device_folders)} devices...")
-        result = self.conn.execute(query)
+        result = self.conn.sql(query)
 
-        row_count = self.conn.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
+        row_count = result.count('*').fetchone()[0]
         print(f"Total events loaded: {row_count}")
 
         return result

@@ -1,4 +1,13 @@
-from sqlalchemy import Column, String, Integer, TIMESTAMP, ForeignKey, Index, func
+from sqlalchemy import (
+    TIMESTAMP,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -21,6 +30,7 @@ class HourlyMetric(Base):
     hour = Column(TIMESTAMP, nullable=False)
     people_in = Column(Integer, nullable=False, default=0)
     people_out = Column(Integer, nullable=False, default=0)
+    net_flow = Column(Integer, nullable=False, default=0)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
@@ -31,6 +41,5 @@ class HourlyMetric(Base):
     __table_args__ = (
         Index('idx_hourly_device_hour', 'device_id', 'hour'),
         Index('idx_hourly_hour', 'hour'),
-        # Unique constraint for upserts
-        {'extend_existing': True}
+        UniqueConstraint('device_id', 'hour', name='uq_device_hour')
     )

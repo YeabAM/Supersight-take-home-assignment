@@ -1,5 +1,6 @@
-import duckdb
 from datetime import datetime
+
+import duckdb
 
 
 class MetricsTransformer:
@@ -10,6 +11,9 @@ class MetricsTransformer:
 
     def aggregate_hourly(self, raw_data_relation):
         """Aggregate events to hourly metrics with net flow"""
+        # Register the relation so it can be queried
+        self.conn.register("raw_data", raw_data_relation)
+
         query = """
         SELECT
             device_id,
@@ -17,21 +21,24 @@ class MetricsTransformer:
             SUM(people_in) as people_in,
             SUM(people_out) as people_out,
             SUM(people_in) - SUM(people_out) as net_flow
-        FROM raw_data_relation
+        FROM raw_data
         GROUP BY device_id, hour
         ORDER BY device_id, hour
         """
 
         print("Aggregating to hourly metrics...")
-        result = self.conn.execute(query)
+        result = self.conn.sql(query)
 
-        row_count = self.conn.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
+        row_count = result.count('*').fetchone()[0]
         print(f"Generated {row_count} hourly records")
-
         return result
 
     def calculate_occupancy(self, hourly_relation):
         """Calculate running occupancy using window function"""
+
+        # Register the relation so it can be queried
+        self.conn.register("hourly_data", hourly_relation)
+
         query = """
         SELECT
             device_id,
@@ -44,12 +51,12 @@ class MetricsTransformer:
                 ORDER BY hour
                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
             ) as occupancy
-        FROM hourly_relation
+        FROM hourly_data
         ORDER BY device_id, hour
         """
 
         print("Calculating occupancy...")
-        result = self.conn.execute(query)
+        result = self.conn.sql(query)
 
         return result
 

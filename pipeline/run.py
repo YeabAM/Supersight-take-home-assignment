@@ -18,12 +18,12 @@ def run_pipeline():
         print("\ntransforming data...")
         print("-" * 50)
         transformer = MetricsTransformer(ingestor.conn)
-        transformed_data = transformer.transform(raw_data)
+        hourly_data, daily_data = transformer.transform(raw_data)
 
         print("\nloading data...")
         print("-" * 50)
         loader = DatabaseLoader()
-        loader.load(transformed_data)
+        loader.load(hourly_data, daily_data)
 
         print("\n" + "=" * 50)
         print("Pipeline completed successfully!")

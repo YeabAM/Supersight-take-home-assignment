@@ -1,5 +1,5 @@
 from database.config import get_engine
-from database.models import Device, HourlyMetric
+from database.models import Device, HourlyMetric, DailyAggregate
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -44,16 +44,41 @@ class DatabaseLoader:
 
         print(f"Successfully upserted {len(records)} records")
 
-    def load(self, duckdb_relation):
+    def upsert_daily_aggregates(self, df):
+        print(f"Upserting {len(df)} daily records...")
+
+        records = df.to_dict('records')
+
+        stmt = insert(DailyAggregate).values(records)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=['device_id', 'date'],
+            set_={
+                'total_in': stmt.excluded.total_in,
+                'total_out': stmt.excluded.total_out,
+                'net_flow': stmt.excluded.net_flow,
+                'updated_at': func.now()
+            }
+        )
+
+        with Session(self.engine) as session:
+            session.execute(stmt)
+            session.commit()
+
+        print(f"Successfully upserted {len(records)} daily records")
+
+
+    def load(self, hourly_relation, daily_relation):
         """Convert DuckDB relation to DataFrame and load to PostgreSQL"""
-        
+
         print("Converting to DataFrame...")
-        df = duckdb_relation.df()
+        hourlydf = hourly_relation.df()
+        dailydf = daily_relation.df()
 
-        print(f"DataFrame shape: {df.shape}")
-        print(f"Columns: {df.columns.tolist()}")
+        print(f"DataFrame shape: {hourlydf.shape}")
+        print(f"Columns: {hourlydf.columns.tolist()}")
 
-        self.upsert_hourly_metrics(df)
+        self.upsert_hourly_metrics(hourlydf)
+        self.upsert_daily_aggregates(dailydf)
 
         print("Load complete")
-        return df
+        return hourlydf, dailydf

@@ -205,6 +205,30 @@ API is available at `http://0.0.0.0:8000`. Swagger docs at `http://0.0.0.0:8000/
 
 ---
 
+## Running Without Docker
+
+### Prerequisites
+- Python 3.11+
+- `uv` installed
+- `.env` file at the project root with important environment variables (attached with email)
+
+### Install dependencies
+```bash
+uv sync
+```
+
+### Run the pipeline
+```bash
+uv run python -m pipeline.run
+```
+
+### Start the API
+```bash
+uv run uvicorn api.main:app --reload
+```
+
+---
+
 ## Deliverables Checklist
 
 - [x] Hourly aggregations (people_in, people_out, net_flow per device per hour)

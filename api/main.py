@@ -1,9 +1,9 @@
 from typing import List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 
-from api.models import DeviceResponse, HourlyMetricResponse
-from api.queries import get_all_devices, get_hourly_metrics
+from api.models import DeviceResponse, HourlyMetricResponse, DailyAggregateResponse
+from api.queries import get_all_devices, get_hourly_metrics, get_daily_aggregates
 from datetime import date
 
 app = FastAPI(
@@ -25,10 +25,23 @@ def read_devices():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/devices/{device_id}/hourly", response_model=List[HourlyMetricResponse])
-def get_device_hourly(device_id: str, date: date):
+def get_device_hourly(
+    device_id: str,
+    date: date = Query(..., description="Date for which to retrieve hourly metrics in YYYY-MM-DD format")
+    ):
     metrics = get_hourly_metrics(device_id, date)
     if not metrics:
         raise HTTPException(status_code=404, detail=f"No data found for device {device_id} on {date}")
     return metrics
 
+@app.get("/devices/{device_id}/daily", response_model=List[DailyAggregateResponse])
+def get_device_daily(
+    device_id: str,
+    start_date: date = Query(..., description="Start date for the query range (inclusive) in YYYY-MM-DD format"),
+    end_date: date = Query(..., description="End date for the query range (inclusive) in YYYY-MM-DD format")
+):
+    aggregates = get_daily_aggregates(device_id, start_date, end_date)
+    if not aggregates:
+        raise HTTPException(status_code=404, detail=f"No data found for device {device_id} between {start_date} and {end_date}")
+    return aggregates
 

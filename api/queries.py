@@ -33,3 +33,26 @@ def get_hourly_metrics(device_id: str, query_date: date):
     with Session(engine) as session:
         result = session.execute(query, {"device_id": device_id, "query_date": query_date})
         return result.mappings().all()
+
+def get_daily_aggregates(device_id: str, start_date: date, end_date: date):
+    engine = get_engine()
+    query = text("""
+        SELECT
+            device_id,
+            date,
+            total_in,
+            total_out,
+            net_flow
+        FROM daily_aggregates
+        WHERE device_id = :device_id
+        AND date BETWEEN :start_date AND :end_date
+        ORDER BY date
+    """)
+
+    with Session(engine) as session:
+        result = session.execute(query, {
+            "device_id": device_id,
+            "start_date": start_date,
+            "end_date": end_date
+        })
+        return result.mappings().all()

@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 
-from api.models import DeviceResponse, HourlyMetricResponse, DailyAggregateResponse
-from api.queries import get_all_devices, get_hourly_metrics, get_daily_aggregates
+from api.models import DeviceResponse, HourlyMetricResponse, DailyAggregateResponse, DeviceComparisonResponse
+from api.queries import get_all_devices, get_device_comparison, get_device_comparison, get_hourly_metrics, get_daily_aggregates
 from datetime import date
 
 app = FastAPI(
@@ -44,4 +44,14 @@ def get_device_daily(
     if not aggregates:
         raise HTTPException(status_code=404, detail=f"No data found for device {device_id} between {start_date} and {end_date}")
     return aggregates
+
+@app.get("/devices/compare", response_model=DeviceComparisonResponse)
+def compare_devices(
+    date: date = Query(..., description="Date to compare devices on in YYYY-MM-DD format"),
+    device_ids: Optional[List[str]] = Query(None, description="Optional list of device IDs to compare, defaults to all devices")
+):
+    grouped = get_device_comparison(date, device_ids)
+    if not grouped:
+        raise HTTPException(status_code=404, detail=f"No data found for the given devices on {date}")
+    return DeviceComparisonResponse(date=date, devices=grouped)
 

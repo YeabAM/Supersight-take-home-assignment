@@ -48,3 +48,12 @@ class DailyAggregateResponse(BaseModel):
     class Config:
 
         from_attributes = True
+
+
+class DeviceComparisonResponse(BaseModel):
+
+    date: date_type = Field(..., description="The date being compared across devices")
+
+    devices: Dict[str, List[HourlyMetricResponse]] = Field(..., description="Hourly metrics with occupancy keyed by device_id"
+
+)

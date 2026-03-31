@@ -56,3 +56,40 @@ def get_daily_aggregates(device_id: str, start_date: date, end_date: date):
             "end_date": end_date
         })
         return result.mappings().all()
+
+def get_device_comparison(query_date: date, device_ids: list[str] | None = None):
+    engine = get_engine()
+
+    if device_ids:
+        where_clause = "AND device_id = ANY(:device_ids)"
+        params = {"query_date": query_date, "device_ids": device_ids}
+    else:
+        where_clause = ""
+        params = {"query_date": query_date}
+
+    query = text(f"""
+        SELECT
+            device_id,
+            hour,
+            people_in,
+            people_out,
+            net_flow,
+            SUM(net_flow) OVER (PARTITION BY device_id ORDER BY hour) as occupancy
+        FROM hourly_metrics
+        WHERE DATE_TRUNC('day', hour) = :query_date
+        {where_clause}
+        ORDER BY device_id, hour
+    """)
+
+    with Session(engine) as session:
+        result = session.execute(query, params)
+        rows = result.mappings().all()
+
+    grouped = {}
+    for row in rows:
+        device_id = row["device_id"]
+        if device_id not in grouped:
+            grouped[device_id] = []
+        grouped[device_id].append(row)
+
+    return grouped

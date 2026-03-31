@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "duckdb>=1.5.1",
+    "fastapi>=0.135.2",
     "pandas>=3.0.1",
     "psycopg2-binary>=2.9.11",
     "python-dotenv>=1.2.2",
     "sqlalchemy>=2.0.48",
+    "uvicorn>=0.42.0",
 ]

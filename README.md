@@ -185,7 +185,7 @@ Returns hourly metrics with occupancy for multiple devices on the same date in a
 ### Prerequisites
 
 - Docker Desktop running
-- `.env` file at the project root with `DATABASE_URL` set to your Supabase connection string. A `.env` file is included with the submission email.
+- `.env` file at the project root with `DATABASE_URL` set to your Supabase connection string. A `.env` file is included with the submission email. Check `.env.example` for your detail of what environment variable to setup.
 
 ### Run the pipeline
 

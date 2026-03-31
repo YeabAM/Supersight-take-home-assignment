@@ -1,0 +1,18 @@
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    env_file:
+      - .env
+    volumes:
+      - ./people_counting_data:/app/people_counting_data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
